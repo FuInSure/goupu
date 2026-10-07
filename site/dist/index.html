@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="探索中国古代建筑的材料、形制与文献联系。基于可追溯资料的建筑关系图谱。">
+  <title>构·谱 — 中国古代建筑基因图谱</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+  <script defer src="data.js"></script><script defer src="simulation.js"></script><script defer src="app.js"></script>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="构谱首页"><span class="brand-mark">构</span><span><strong>构<span class="brand-dot">·</span>谱</strong><small>中国古代建筑基因图谱</small></span></a>
+    <nav class="view-tabs" aria-label="探索视图"><button class="active" data-view="network">营造图谱</button><button data-view="flow">特征组合</button><button data-view="catalog">建筑名录</button></nav>
+    <div class="top-actions"><button class="quiet" id="sources-button"><span aria-hidden="true">◫</span> 资料与口径</button><button class="quiet" id="export-button"><span aria-hidden="true">↓</span> 导出数据</button></div>
+  </header>
+  <section class="intro-strip" aria-label="图谱概况">
+    <div class="intro-title"><span class="eyebrow">THE LANGUAGE OF BUILDING</span><h1>在万千构造之间，读懂营造智慧。</h1></div>
+    <div class="stat"><strong id="total-count">—</strong><span>收录对象</span></div>
+    <div class="stat"><strong id="relation-count">—</strong><span id="relation-label">特征关联</span></div>
+    <div class="stat"><strong id="feature-count">—</strong><span>特征节点</span></div>
+    <div class="stat last"><strong id="visible-count">—</strong><span>当前匹配</span></div>
+  </section>
+  <section class="filterbar" aria-label="筛选建筑">
+    <label class="search"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="搜索建筑、结构或形制…" autocomplete="off" aria-label="搜索建筑、结构或形制"><kbd>/</kbd></label>
+    <div class="category-filters" id="category-filters"></div>
+    <select id="coverage-filter" aria-label="资料筛选"><option value="all">全部资料</option><option value="shape">有形制资料</option><option value="scale">有开间资料</option><option value="catalog">文保名录样本</option></select>
+    <button id="reset-button" class="reset">重置筛选</button>
+  </section>
+  <div class="active-filters" id="active-filters" aria-live="polite"></div>
+  <main class="dashboard">
+    <aside class="side-column left-column">
+      <section class="panel purpose-panel"><div class="panel-heading"><div><span class="section-no">01</span><h2>类型构成</h2></div><span class="panel-meta" id="purpose-scope">全部资料</span></div><div id="purpose-chart" class="chart"></div><p class="chart-note">灰条：范围占比 · 彩条：当前占比</p></section>
+      <section class="panel material-panel"><div class="panel-heading"><div><span class="section-no">02</span><h2 id="material-title">材料分布</h2></div><span class="panel-meta" id="material-meta">数量 / 占比</span></div><div id="material-chart" class="chart"></div><p class="chart-note" id="material-note">屋面、桥面、承重材料分别表述</p></section>
+    </aside>
+    <section class="main-stage panel" aria-labelledby="stage-title">
+      <div class="stage-heading"><div><span class="eyebrow">RELATIONS · NOT GEOGRAPHY</span><h2 id="stage-title">营造星盘</h2></div><div class="stage-actions"><button id="names-button" class="icon-text" aria-pressed="false">显示名称</button><button id="list-button" class="icon-text">完整名录 <span aria-hidden="true">☷</span></button></div></div>
+      <div class="legend" id="graph-legend"></div>
+      <div id="network-view" class="stage-view"><svg id="network" viewBox="0 0 800 800" aria-label="建筑与特征关系图谱"><defs><radialGradient id="halo"><stop offset="0" stop-color="#d4b674" stop-opacity=".075"/><stop offset="1" stop-color="#d4b674" stop-opacity="0"/></radialGradient><filter id="glow"><feGaussianBlur stdDeviation="2"/></filter></defs></svg><div class="graph-center" id="graph-center"><span class="center-kicker">ARCHITECTURAL GENES</span><div class="center-glyph">构</div><strong>万象同构</strong><span>点击节点，发现共同特征</span></div><div class="graph-tooltip" id="graph-tooltip" hidden></div><div class="stage-watermark">FEATURES / CONNECTIONS / EVIDENCE</div></div>
+      <div id="flow-view" class="stage-view" hidden><div class="flow-note">类型 → 文献时期 → 已知形制 · 每条流带代表收录对象的组合数量</div><svg id="flow-chart" viewBox="0 0 800 590" aria-label="建筑特征组合流图"></svg></div>
+      <div id="catalog-view" class="stage-view catalog-view" hidden><div class="catalog-summary" id="catalog-summary"></div><div class="catalog-scroll"><table><thead><tr><th>建筑 / 文保单位</th><th>类型</th><th>来源所载时期</th><th>资料</th></tr></thead><tbody id="catalog-body"></tbody></table></div></div>
+      <div class="selection-panel" id="graph-selection" hidden aria-live="polite"></div>
+      <div class="stage-bottom"><span id="stage-status">拖动旋转 · 滚轮缩放 · 点击节点探索</span><div class="zoom-controls" id="zoom-controls"><button id="rotate-left" aria-label="向左旋转圆盘" title="向左旋转">↶</button><button id="rotate-right" aria-label="向右旋转圆盘" title="向右旋转">↷</button><button id="zoom-out" aria-label="缩小图谱">−</button><span id="zoom-label">100%</span><button id="zoom-in" aria-label="放大图谱">＋</button><button id="zoom-reset" aria-label="复位图谱" title="恢复角度与缩放">⊙</button></div></div>
+    </section>
+    <aside class="side-column right-column">
+      <section class="panel shape-panel"><div class="panel-heading"><div><span class="section-no">03</span><h2>形制关联</h2></div><span class="panel-meta" id="shape-count"></span></div><div id="shape-chart" class="chart"></div><p class="chart-note" id="shape-note">屋顶 × 开间 · 点击方格联动筛选</p></section>
+      <section class="panel scale-panel"><div class="panel-heading"><div><span class="section-no">04</span><h2 id="scale-title">开间与进深</h2></div><span class="panel-meta" id="scale-count"></span></div><div id="scale-chart" class="chart"></div><p class="chart-note" id="scale-note">单位：间 · 点击散点查看匹配对象</p></section>
+    </aside>
+  </main>
+  <footer class="footer"><span>资料整理于 2026.10.07 <i></i> 精选样本，不代表全国建筑总体</span><span id="relation-footnote">基因＝建筑特征的设计比喻 <i></i> 连线＝特征关联</span><span class="mobile-tools"><button id="mobile-sources">资料与口径</button><button id="mobile-export">导出数据</button></span></footer>
+</div>
+<div class="drawer-scrim" id="drawer-scrim" hidden></div>
+<aside class="detail-drawer" id="detail-drawer" aria-label="建筑资料详情" role="dialog" aria-modal="true" hidden><div id="detail-content"></div></aside>
+<dialog id="source-dialog"><div class="dialog-head"><div><span class="eyebrow">DATA & METHODOLOGY</span><h2>资料与统计口径</h2></div><button class="close-button" data-close-dialog aria-label="关闭资料说明">×</button></div><div id="source-content"></div></dialog>
+<dialog id="compare-dialog"><div class="dialog-head"><div><span class="eyebrow">COMMON & DISTINCT</span><h2>建筑比较</h2></div><button class="close-button" data-close-dialog aria-label="关闭建筑比较">×</button></div><div id="compare-content"></div></dialog>
+<div class="compare-tray" id="compare-tray" hidden><div><span>比较清单</span><strong id="compare-names"></strong></div><button id="compare-open">查看比较</button><button id="compare-clear" aria-label="清空比较清单">×</button></div>
+<div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

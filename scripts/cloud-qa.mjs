@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+const siteURL=process.env.ATLAS_QA_URL||'http://127.0.0.1:8787/';
+const source=JSON.parse(await readFile(new URL('../site/dist/data.json',import.meta.url),'utf8'));
+const supplement=JSON.parse(await readFile(new URL('../site/dist/simulation.json',import.meta.url),'utf8'));
+const config=JSON.parse(await readFile(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
+const results=[];
+async function request(path,options={}){return fetch(new URL(path,siteURL),{...options,signal:AbortSignal.timeout(20000)});}
+const bootstrap=await request('/api/bootstrap');assert.equal(bootstrap.status,200);
+const data=await bootstrap.json();
+assert.deepEqual(data.atlas,source);assert.deepEqual(data.supplement,supplement);assert.equal(data.revision,config.vars.DATA_REVISION);
+results.push('D1 bootstrap reproduces both source files exactly');
+const health=await(await request('/api/health')).json();assert.equal(health.status,'ok');assert.equal(health.buildings,140);assert.equal(health.records,140);
+results.push('Health confirms 140 objects and 140 supplement records');
+assert.deepEqual(await(await request('/data.json')).json(),source);
+assert.deepEqual(await(await request('/simulation.json')).json(),supplement);
+results.push('JSON routes also read the active D1 revision');
+assert.equal((await request('/api/bootstrap',{method:'POST'})).status,405);
+assert.equal((await request('/api/nonexistent')).status,404);
+results.push('Public API permits reads and rejects writes');
+const html=await(await request('/')).text();assert.match(html,/bootstrap\.js/);assert.doesNotMatch(html,/<script[^>]*src="(?:data|simulation)\.js"/);
+for(const file of ['/bootstrap.js','/app.js','/styles.css','/favicon.svg'])assert.equal((await request(file)).status,200);
+results.push('Published HTML loads the API bootstrap and all assets');
+await mkdir(new URL('../output/qa/cloud/',import.meta.url),{recursive:true});
+await writeFile(new URL('../output/qa/cloud/results.json',import.meta.url),JSON.stringify({url:siteURL,revision:data.revision,results},null,2));
+console.log(JSON.stringify({url:siteURL,revision:data.revision,checks:results.length,buildings:data.atlas.buildings.length}));

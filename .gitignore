@@ -1,0 +1,15 @@
+output/qa/browser-profile/
+output/
+research/
+node_modules/
+.wrangler/
+public/
+cloudflare/import.sql
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+*.log
+*.pyc
+__pycache__/
+.DS_Store

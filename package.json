@@ -1,0 +1,26 @@
+{
+  "name": "goupu-architectural-atlas",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "check": "node --check site/dist/app.js",
+    "test": "node scripts/verify-all.mjs",
+    "build:cloud": "node cloudflare/build.mjs",
+    "dev:cloud": "wrangler dev --port 8787",
+    "db:local": "node cloudflare/deploy.mjs --local",
+    "deploy:cloud": "node cloudflare/deploy.mjs",
+    "deploy": "npm run build:cloud && npm run deploy:cloud"
+  },
+  "description": "构·谱：中国古代建筑信息可视化，Cloudflare Workers 与 D1 部署",
+  "devDependencies": {
+    "wrangler": "^4.148.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "overrides": {
+    "sharp": "^0.35.5"
+  }
+}

@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const data=JSON.parse(await readFile(path.join(root,'site/dist/data.json'),'utf8'));
+const rows=data.buildings,find=name=>rows.find(r=>r.name===name),results=[];
+function check(label,test){test();results.push(label);console.log('PASS',label);}
+check('Object identity is unique',()=>{assert.equal(new Set(rows.map(r=>r.id)).size,rows.length);assert.equal(new Set(rows.map(r=>r.name)).size,rows.length);});
+check('Scope contains only the four approved themes',()=>{rows.forEach(r=>{assert.ok(['民居','官府','皇宫','桥梁'].includes(r.kind));assert.ok(!/寺|庙|塔|祠|墓/.test(r.name));assert.ok(!/民国|近代|中华人民共和国/.test(r.period));});});
+check('Every object has provenance, chronology basis and recorded gaps',()=>{rows.forEach(r=>{assert.match(r.source,/^https:\/\//);assert.ok(r.sourceName);assert.ok(r.dateBasis);assert.ok(Array.isArray(r.gaps)&&r.gaps.length>0);});});
+check('Missing numerical measurements stay null',()=>{rows.forEach(r=>{for(const key of ['bays','depth','area','height'])assert.ok(r[key]===null||Number.isFinite(r[key])&&r[key]>0);});});
+check('Palace roofs refer to the main object rather than an annex',()=>{assert.equal(find('翊坤宫').roof,'歇山顶');assert.equal(find('太和殿').roof,'庑殿顶');assert.equal(find('中和殿').roof,'攒尖顶');assert.equal(find('养心殿').bays,3);assert.equal(find('畅音阁').roofDetail,'卷棚歇山式顶，三重檐');});
+check('Chronology distinguishes original construction from rebuilding',()=>{assert.ok(find('乾清宫').events.some(e=>e.year===1420&&e.type==='始建'));assert.ok(find('乾清宫').events.some(e=>e.year===1798&&e.type==='现存建筑重建'));assert.ok(find('太和殿').events.some(e=>e.year===1695&&e.type==='重建工程起点'));assert.ok(find('太和殿').events.some(e=>e.year===1697&&e.type==='重建竣工'));});
+check('Disputed dating is not made into a precise year',()=>{assert.equal(find('断虹桥').period,'元或明初（有争议）');assert.deepEqual(find('断虹桥').events,[]);assert.equal(find('断虹桥').length,18.7);assert.equal(find('断虹桥').widthQualifier,'最宽处');});
+check('Historical alias is excluded from duplicate object counts',()=>{assert.ok(find('寿安宫'));assert.equal(find('咸安宫'),undefined);assert.ok(data.excluded.some(r=>r.name==='咸安宫（原址）'));});
+check('Bridge data do not use house dimensions',()=>{rows.filter(r=>r.kind==='桥梁').forEach(r=>{assert.equal(r.bays,null);assert.equal(r.depth,null);});});
+check('Unknown roof information is recorded as a gap',()=>{rows.filter(r=>r.kind!=='桥梁'&&!r.roof).forEach(r=>assert.ok(r.gaps.some(g=>/屋顶/.test(g))));});
+const bundled=await readFile(path.join(root,'site/dist/data.js'),'utf8');
+check('Bundled data and JSON export carry identical records',()=>assert.deepEqual(JSON.parse(bundled.replace(/^window\.ATLAS_DATA = /,'').replace(/;\s*$/,'')),data));
+const counts=Object.fromEntries(['民居','官府','皇宫','桥梁'].map(k=>[k,rows.filter(r=>r.kind===k).length]));
+const report={checkedAt:'2026-10-07',total:rows.length,counts,roofKnown:rows.filter(r=>r.roof).length,pairedScaleKnown:rows.filter(r=>r.bays!==null&&r.depth!==null).length,sourceCatalogs:data.meta.sources.length,checks:results,limitations:['本校验不代替每个文保单位的完整构造调查','故宫样本的形制字段较多，不能据此推断全国总体规律','第五批名录为高校转载存档，尚需对照政府原文复核','图片许可、参赛届次与AI工具适用口径仍须另行确认']};
+await mkdir(path.join(root,'output/qa'),{recursive:true});await writeFile(path.join(root,'output/qa/data-validation.json'),JSON.stringify(report,null,2));
+console.log(JSON.stringify(report,null,2));

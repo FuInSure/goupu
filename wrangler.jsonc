@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "goupu",
+  "account_id": "e1df0fda20d0e9521bb03ef4b4ae9002",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-10-07",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*",
+      "/data.json",
+      "/simulation.json"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "goupu-db",
+      "database_id": "514f6bcf-aa46-46a9-b3dd-7d6c65474686"
+    }
+  ],
+  "vars": {
+    "DATA_REVISION": "fcea71bffb29ae86e6297ffd"
+  }
+}
