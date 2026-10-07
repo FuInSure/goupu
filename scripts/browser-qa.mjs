@@ -7,7 +7,7 @@ const deployedURL=process.env.ATLAS_QA_URL;
 const previewURL=deployedURL||'http://127.0.0.1:4173/';
 const revisitURL=deployedURL||'file:///'+path.join(root,'site/dist/index.html').replaceAll('\\','/');
 const output=path.join(root,'output/qa');await mkdir(output,{recursive:true});
-const browser=spawn('C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',['--headless=new','--disable-gpu','--disable-features=msEdgeSidebarV2','--no-first-run','--no-default-browser-check','--remote-debugging-port=9225',`--user-data-dir=${path.join(output,'browser-profile')}`,'about:blank'],{windowsHide:true,stdio:'ignore'});
+const browser=spawn('C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',['--headless=new','--disable-gpu','--disable-features=msEdgeSidebarV2','--no-first-run','--no-default-browser-check','--remote-debugging-port=9225',`--user-data-dir=${path.join(output,'browser-profile-'+Date.now())}`,...(process.env.ATLAS_QA_PROXY?['--proxy-server='+process.env.ATLAS_QA_PROXY]:[]),'about:blank'],{windowsHide:true,stdio:'ignore'});
 let socket,requestId=0;const pending=new Map(),errors=[],results=[];
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function send(method,params={}){const id=++requestId;return new Promise((resolve,reject)=>{pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});}

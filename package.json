@@ -15,7 +15,8 @@
   },
   "description": "构·谱：中国古代建筑信息可视化，Cloudflare Workers 与 D1 部署",
   "devDependencies": {
-    "wrangler": "^4.148.0"
+    "wrangler": "^4.148.0",
+    "undici": "^7.29.1"
   },
   "engines": {
     "node": ">=22.12.0"

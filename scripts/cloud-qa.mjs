@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
+if(process.env.ATLAS_QA_PROXY){const {ProxyAgent,setGlobalDispatcher}=await import('undici');setGlobalDispatcher(new ProxyAgent(process.env.ATLAS_QA_PROXY));}
 const siteURL=process.env.ATLAS_QA_URL||'http://127.0.0.1:8787/';
 const source=JSON.parse(await readFile(new URL('../site/dist/data.json',import.meta.url),'utf8'));
 const supplement=JSON.parse(await readFile(new URL('../site/dist/simulation.json',import.meta.url),'utf8'));
